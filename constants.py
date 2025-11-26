@@ -1,0 +1,2 @@
+RAG_COLLECTION_LOAN_INTEREST_RATES = "loan_interest_rates"
+RAG_COLLECTION_LOAN_OVERALL_RISK_POLICY = "loan_overall_risk_policy"
