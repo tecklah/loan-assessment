@@ -1,5 +1,4 @@
-# Install load_dotenv pymilvus pymilvus[model] langchain langchain_community langchain_text_splitters langchain_openai langchain-milvus pypdf
-# pymilvus[milvus_lite] langgraph mysqldb psycopg2
+# Install load_dotenv langchain langgraph langchain_community langchain_text_splitters langchain_openai langchain-milvus pymilvus pymilvus[model] ymilvus[milvus_lite] pypdf streamlit mysqldb psycopg2 pdfplumber
 import os
 import constants
 import prompts
@@ -57,13 +56,21 @@ def check_database(query: str) -> str:
 
     return content
 
-data = load_pdf_file(file_path='./docs/Bank Loan Overall Risk Policy.pdf')
-documents = text_split(data, chunk_size=200, chunk_overlap=50)
-vector_store_loan_overall_risk_policy = RAG(documents, constants.RAG_COLLECTION_LOAN_OVERALL_RISK_POLICY, reload_collection=False)
+reload_collection = False
+data = None
+documents = None
 
-data = load_pdf_file(file_path='./docs/Bank Loan Interest Rate Policy.pdf')
-documents = text_split(data, chunk_size=200, chunk_overlap=50)
-vector_store_loan_interest_rate_policy = RAG(documents, constants.RAG_COLLECTION_LOAN_INTEREST_RATES, reload_collection=False)
+if not os.path.exists(constants.RAG_VECTOR_STORE_PATH) or reload_collection:
+    data = load_pdf_file(file_path=constants.FILE_OVERALL_RISK_POLICY)
+    documents = text_split(data, chunk_size=200, chunk_overlap=50)
+
+vector_store_loan_overall_risk_policy = RAG(documents, constants.RAG_COLLECTION_LOAN_OVERALL_RISK_POLICY, reload_collection=reload_collection)
+
+if not os.path.exists(constants.RAG_VECTOR_STORE_PATH) or reload_collection:
+    data = load_pdf_file(file_path=constants.FILE_INTEREST_RATE_POLICY)
+    documents = text_split(data, chunk_size=200, chunk_overlap=50)
+
+vector_store_loan_interest_rate_policy = RAG(documents, constants.RAG_COLLECTION_LOAN_INTEREST_RATES, reload_collection=reload_collection)
 
 @tool(description="A tool to check the overall risk policy for a loan application using RAG.")
 def check_overall_risk(query: str):
@@ -100,8 +107,8 @@ def run_agent(query: str, session_id: str) -> str:
 
 if __name__ == "__main__":
 
-    # query = "Customer Information: Loren, 1111, loren@gmail.com"
+    query = "Customer Information: Loren, 1111, loren@gmail.com"
     # query = "Customer Information: Matt, 2222, matt@yahoo.com"
-    query = "Customer Information: Andy, 4444, matt@yahoo.com"
+    # query = "Customer Information: Andy, 4444, matt@yahoo.com"
 
     run_agent(query, str(uuid4()))
