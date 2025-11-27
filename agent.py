@@ -1,5 +1,5 @@
 # Install load_dotenv pymilvus pymilvus[model] langchain langchain_community langchain_text_splitters langchain_openai langchain-milvus pypdf
-# pymilvus[milvus_lite] langgraph
+# pymilvus[milvus_lite] langgraph mysqldb psycopg2
 import os
 import constants
 import prompts
@@ -25,7 +25,8 @@ chat_model = ChatOpenAI(
     max_tokens=1000,
 )
 
-db = SQLDatabase.from_uri("mysql+mysqldb://" + os.getenv('DB_USERNAME') + ":" + os.getenv('DB_PASSWORD') + "@localhost:3306/iti122")
+# db = SQLDatabase.from_uri("mysql+mysqldb://" + os.getenv('DB_USERNAME') + ":" + os.getenv('DB_PASSWORD') + "@localhost:3306/iti122")
+db = SQLDatabase.from_uri("postgresql+psycopg2://" + os.getenv('DB_USERNAME') + ":" + os.getenv('DB_PASSWORD') + "@" + os.getenv('DB_HOST') + "/loanassessment")
 toolkit = SQLDatabaseToolkit(db=db, llm=chat_model)
 tools = toolkit.get_tools()
 
