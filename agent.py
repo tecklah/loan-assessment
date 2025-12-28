@@ -15,7 +15,7 @@ from rag import RAG
 
 load_dotenv()
 
-chat_model = ChatOpenAI(
+llm = ChatOpenAI(
     openai_api_base="https://api.openai.com/v1",
     openai_api_key=os.getenv('OPENAI_API_KEY'),
     model_name="gpt-4.1",
@@ -24,7 +24,7 @@ chat_model = ChatOpenAI(
 )
 
 db = SQLDatabase.from_uri("postgresql+psycopg2://" + os.getenv('DB_USERNAME') + ":" + os.getenv('DB_PASSWORD') + "@" + os.getenv('DB_HOST') + "/loanassessment")
-toolkit = SQLDatabaseToolkit(db=db, llm=chat_model)
+toolkit = SQLDatabaseToolkit(db=db, llm=llm)
 tools = toolkit.get_tools()
 
 @tool(description="A tool to query the SQL database. Pass in a query/prompt that you want to run against the database.")
@@ -39,7 +39,7 @@ def check_database(query: str) -> str:
     )
 
     db_agent = create_agent(
-        chat_model,
+        llm,
         tools,
         system_prompt=system_prompt
     )
@@ -62,13 +62,13 @@ if not os.path.exists(constants.RAG_VECTOR_STORE_PATH) or reload_collection:
     data = load_pdf_file(file_path=constants.FILE_OVERALL_RISK_POLICY)
     documents = text_split(data, chunk_size=200, chunk_overlap=50)
 
-vector_store_loan_overall_risk_policy = RAG(documents, constants.RAG_COLLECTION_LOAN_OVERALL_RISK_POLICY, reload_collection=reload_collection)
+vector_store_loan_overall_risk_policy = RAG(llm, documents, constants.RAG_COLLECTION_LOAN_OVERALL_RISK_POLICY, reload_collection=reload_collection)
 
 if not os.path.exists(constants.RAG_VECTOR_STORE_PATH) or reload_collection:
     data = load_pdf_file(file_path=constants.FILE_INTEREST_RATE_POLICY)
     documents = text_split(data, chunk_size=200, chunk_overlap=50)
 
-vector_store_loan_interest_rate_policy = RAG(documents, constants.RAG_COLLECTION_LOAN_INTEREST_RATES, reload_collection=reload_collection)
+vector_store_loan_interest_rate_policy = RAG(llm, documents, constants.RAG_COLLECTION_LOAN_INTEREST_RATES, reload_collection=reload_collection)
 
 @tool(description="A tool to check the overall risk policy for a loan application using RAG.")
 def check_overall_risk(query: str):
@@ -79,7 +79,7 @@ def check_interest_rate(query: str):
     return vector_store_loan_interest_rate_policy.query(query)
 
 supervisor_agent = create_agent(
-    chat_model,
+    llm,
     tools=[check_database, check_overall_risk, check_interest_rate],
     system_prompt=prompts.SUPERVISOR_PROMPT,
     checkpointer=InMemorySaver(),

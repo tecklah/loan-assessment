@@ -1,5 +1,6 @@
 .env
 .DS_Store
+.deepeval/
 __pycache__
 notes.md
 presentation/

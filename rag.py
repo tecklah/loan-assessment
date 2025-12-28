@@ -11,6 +11,7 @@ class RAG:
 
     def __init__(
             self, 
+            model,
             documents: List,
             collection_name: str, 
             db_name: str = "milvus", 
@@ -18,6 +19,8 @@ class RAG:
             db_file_path: str = "./milvus.db",
             embedding_model: str = "text-embedding-3-large",
             metric_type: str = "IP"):
+
+        self.model = model
 
         self.embeddings_model = OpenAIEmbeddings(
             model=embedding_model, 
@@ -55,16 +58,28 @@ class RAG:
                 index_params=index_params
             )
 
-    def query(
-        self,
+    def retrieve(
+        self, 
         question: str,
         top_k: int = 2
     ):
-        """
-        Answer the given question with the retrieved knowledge.
-        """
         documents = self.vector_store.similarity_search(question, k=top_k)
-        print_documents(documents)
-        result = "".join(document.page_content + "\n" for document in documents)
-        print_message(result)
-        return result
+        document_page_contents = [doc.page_content for doc in documents]
+        return document_page_contents
+    
+    def query(
+        self,
+        question: str, 
+        top_k: int = 2
+    ):
+        documents = self.vector_store.similarity_search(question, k=top_k)
+        document_page_contents = [doc.page_content for doc in documents]
+        context = "\n".join(document_page_contents)
+        prompt = (
+            "Answer the question using the context below.\n\nContext:\n{context}\n\nQuestion:\n{question}"
+            "Only use information from the context. If nothing relevant is found, respond with: 'No relevant information available.'"
+        )
+        prompt = prompt.format(context=context, question=question)
+        response = self.model.invoke(prompt)
+
+        return response.content
