@@ -16,7 +16,8 @@ from deepeval.metrics import (
 from deepeval.metrics import GEval
 from deepeval import evaluate
 
-load_dotenv()
+# Load environment variables first
+load_dotenv(dotenv_path='.env')
 
 # Create evaluation model using gpt-4o-mini
 eval_model = GPTModel(model="gpt-4o-mini")
@@ -74,7 +75,7 @@ agent = RAG(llm, documents, constants.RAG_COLLECTION_LOAN_INTEREST_RATES)
 test_cases = []
 for golden in dataset.goldens:
     retrieved_docs = agent.retrieve(golden.input)
-    response = agent.query(golden.input)
+    response, retrieved_contexts = agent.query(golden.input)
     test_case = LLMTestCase(
         input=golden.input,
         actual_output=str(response),

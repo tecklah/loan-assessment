@@ -24,7 +24,7 @@ for rag in [{
         reload_collection=True
     )
 
-    query_result = vector_store.query(
+    query_result, retrieved_contexts = vector_store.query(
         rag['question'],
         top_k=2
     )

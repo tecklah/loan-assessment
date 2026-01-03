@@ -72,11 +72,13 @@ vector_store_loan_interest_rate_policy = RAG(llm, documents, constants.RAG_COLLE
 
 @tool(description="A tool to check the overall risk policy for a loan application using RAG.")
 def check_overall_risk(query: str):
-    return vector_store_loan_overall_risk_policy.query(query)
+    response, retrieved_contexts = vector_store_loan_overall_risk_policy.query(query)
+    return response
 
 @tool(description="A tool to check the interest rate for a loan application using RAG.")
 def check_interest_rate(query: str):
-    return vector_store_loan_interest_rate_policy.query(query)
+    response, retrieved_contexts = vector_store_loan_interest_rate_policy.query(query)
+    return response
 
 supervisor_agent = create_agent(
     llm,

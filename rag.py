@@ -82,4 +82,4 @@ class RAG:
         prompt = prompt.format(context=context, question=question)
         response = self.model.invoke(prompt)
 
-        return response.content
+        return response.content, document_page_contents
