@@ -43,7 +43,7 @@ class RAG:
             )
 
             if reload_collection:
-                print_message(f"Reloaded collection {collection_name} in existing vector store.")
+                print(f"Reloaded collection {collection_name} in existing vector store.")
                 self.vector_store.drop()
                 self.vector_store.add_documents(documents)
 
@@ -75,6 +75,7 @@ class RAG:
         documents = self.vector_store.similarity_search(question, k=top_k)
         document_page_contents = [doc.page_content for doc in documents]
         context = "\n".join(document_page_contents)
+
         prompt = (
             "Answer the question using the context below.\n\nContext:\n{context}\n\nQuestion:\n{question}"
             "Only use information from the context. If nothing relevant is found, respond with: 'No relevant information available.'"

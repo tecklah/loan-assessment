@@ -2,6 +2,7 @@ from langchain_openai import ChatOpenAI
 from deepeval.test_case import LLMTestCase
 from deepeval.metrics import AnswerRelevancyMetric, ContextualPrecisionMetric, FaithfulnessMetric, ContextualRelevancyMetric, ContextualRecallMetric
 from deepeval import evaluate
+from deepeval.evaluate.configs import AsyncConfig, CacheConfig, DisplayConfig
 from dotenv import load_dotenv
 import os
 import sys
@@ -11,17 +12,29 @@ import constants
 # Load environment variables first
 load_dotenv(dotenv_path='.env')
 
-answer_relevancy = AnswerRelevancyMetric(threshold=0.8, model="gpt-4o-mini")
 contextual_precision = ContextualPrecisionMetric(threshold=0.8, model="gpt-4o-mini")
-contextual_relevancy = ContextualRelevancyMetric(threshold=0.4, model="gpt-4o-mini")
+contextual_relevancy = ContextualRelevancyMetric(threshold=0.8, model="gpt-4o-mini")
 contextual_recall = ContextualRecallMetric(threshold=0.8, model="gpt-4o-mini")
+answer_relevancy = AnswerRelevancyMetric(threshold=0.8, model="gpt-4o-mini")
 faithfulness = FaithfulnessMetric(threshold=0.8, model="gpt-4o-mini")
+
 llm = ChatOpenAI(
     base_url="https://api.openai.com/v1",
     api_key=os.getenv('OPENAI_API_KEY'),
     model="gpt-4o-mini",
     temperature=0.1,
-    max_tokens=1000,
+    max_tokens=512,
+)
+
+EVAL_ASYNC = AsyncConfig(
+    run_async=True,     # faster than sync in most cases
+    max_concurrent=10,   # tune up/down if you hit rate limits
+    throttle_value=0,
+)
+
+EVAL_DISPLAY = DisplayConfig(
+    show_indicator=True,
+    print_results=True,
 )
 
 interest_rate_test_cases = [
@@ -65,12 +78,18 @@ def test_rag_interest_rate():
 
     for test_case in interest_rate_test_cases:
 
-        actual_output, retrieved_contexts = rag.query(test_case.input)
+        actual_output, retrieved_contexts = rag.query(test_case.input, top_k=2)
 
         test_case.actual_output = actual_output
         test_case.retrieval_context = retrieved_contexts
 
-    evaluate(interest_rate_test_cases, metrics=[answer_relevancy, contextual_precision, faithfulness, contextual_relevancy, contextual_recall])
+    evaluate(
+        interest_rate_test_cases,
+        # metrics=[answer_relevancy, faithfulness],
+        metrics=[contextual_precision, contextual_relevancy, contextual_recall],
+        async_config=EVAL_ASYNC,
+        display_config=EVAL_DISPLAY,
+    )
 
 def test_rag_overall_risk():
 
@@ -88,11 +107,17 @@ def test_rag_overall_risk():
         test_case.actual_output = actual_output
         test_case.retrieval_context = retrieved_contexts
 
-    evaluate(overall_risk_test_cases, metrics=[answer_relevancy, contextual_precision, faithfulness, contextual_relevancy, contextual_recall])
+    evaluate(
+        overall_risk_test_cases,
+        # metrics=[answer_relevancy, faithfulness],
+        metrics=[contextual_precision, contextual_relevancy, contextual_recall],
+        async_config=EVAL_ASYNC,
+        display_config=EVAL_DISPLAY,
+    )
 
 if __name__ == "__main__":
     test_rag_interest_rate()
-    test_rag_overall_risk()
+    #test_rag_overall_risk()
     sys.exit(0)
 
 

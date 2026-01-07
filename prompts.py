@@ -28,6 +28,8 @@ Steps to follow for each loan application assessment:
         Email: [Extracted Email]
         Account ID: [Extracted Account ID]
         If the customer does not exist, respond with 'Customer Not Found'.
+        If the provided name and customer name in database do not match, respond with 'Customer Not Found'.
+        If the provided email and customer email in database do not match, respond with 'Customer Not Found'.
 
 4. Use check_database tool to get customer details:
     - Use the check_database tool to execute the generated prompt from previous step.
